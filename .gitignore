@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.venv/
+venv/
+env/
+
+# Entorno
+.env
+.env.*
+!.env.example
+
+# Datos y bases de datos
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Salidas de scripts
+output/
+results/
+*.jpg.annotated.jpg
+*.png.annotated.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Imágenes locales de prueba que no quieres commitear
+test_images/private/
+known_faces/private/
+
+# Logs
+*.log
+logs/

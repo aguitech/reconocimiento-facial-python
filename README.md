@@ -1,347 +1,231 @@
-<p align="center">
-  <img src="https://aguitech.com/images/logo.png" alt="AGUITECH" width="120">
-</p>
+# Reconocimiento Facial — Python
 
-<h1 align="center">👤 reconocimiento-facial-python</h1>
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000)](https://github.com/astral-sh/ruff)
 
-<p align="center">
-  <strong>Reconocimiento facial en Python · OpenCV, face_recognition, dlib y DeepFace.</strong><br>
-  Toolkit educativo para detección, reconocimiento, verificación y análisis
-  de rostros — desde cero hasta producción.
-</p>
+Sistema de **reconocimiento facial** en Python con detección, encodings, base de datos persistente, API REST (FastAPI), CLI (Typer) y soporte para webcam. Listo para correr en local, en servidor, o en la nube vía Docker.
 
-<p align="center">
-  <a href="#que-es">Qué es</a> ·
-  <a href="#features">Features</a> ·
-  <a href="#stack">Stack</a> ·
-  <a href="#instalacion">Instalación</a> ·
-  <a href="#uso">Uso</a> ·
-  <a href="#ejemplos">Ejemplos</a> ·
-  <a href="#api">API</a>
-</p>
+## ✨ Características
 
----
+- 🧠 **Detección dual**: `face_recognition` (dlib) o Haar cascades de OpenCV.
+- 🎯 **Embeddings 128-d** usando el modelo dlib preentrenado.
+- 💾 **Base de datos SQLite** con personas y muestras (encoding + metadatos).
+- ⚡ **Pipeline de alto nivel** (`FacePipeline`) que orquesta todo.
+- 🌐 **API REST con FastAPI**: registro, listado, eliminación, reconocimiento.
+- 🖥️ **CLI con Typer**: `register`, `recognize`, `list`, `delete`, `serve`, etc.
+- 🎥 **Webcam en vivo** con visualización.
+- 🐳 **Docker multi-stage** listo para producción.
+- 🧪 **Tests con pytest** (cubren core, API y utilidades).
 
-## ¿Qué es
+## 📦 Requisitos
 
-`reconocimiento-facial-python` es un **toolkit modular de reconocimiento
-facial** escrito en Python. Reúne en un solo lugar las librerías más
-usadas del ecosistema (OpenCV, `face_recognition`/`dlib`, `DeepFace`,
-`MediaPipe`, `insightface`) detrás de una **API única y consistente**.
+- Python 3.9+
+- macOS, Linux o Windows
+- ~200 MB para dependencias (incluye dlib compilado)
 
-### Casos de uso
+## 🚀 Instalación rápida
 
-- 🎯 **Detección** de caras en fotos / video (bounding boxes + landmarks).
-- 🆔 **Identificación** (1:N) — "¿quién es este rostro?" contra una base de datos.
-- ✅ **Verificación** (1:1) — "¿esta persona es quien dice ser?"
-- 😊 **Análisis de atributos** — edad estimada, género, emoción, etnia.
-- 📐 **Landmarks** — 5 / 68 / 468 puntos clave del rostro.
-- 🎬 **Tracking en video** — seguir un rostro a lo largo de un clip.
-- 📦 **Indexado y búsqueda** — guardar embeddings en disco y consultar.
-
-### ¿Por qué otro toolkit?
-
-Porque cada librería tiene su propia API, formatos de entrada distintos y
-resultados en estructuras diferentes. Este repo:
-
-- **Unifica la API**: una sola interfaz `FaceEngine.detect(...)` /
-  `recognize(...)` que delega al backend elegido.
-- **Compara backends** lado a lado con el mismo input para ver precisión / velocidad.
-- **Avanza progresivamente**: del script de 10 líneas a la API REST con workers.
-
-## Features
-
-| Feature | Estado | Backend |
-|---------|--------|---------|
-| 🔍 Detección bounding boxes | ✅ | OpenCV / DNN |
-| 📐 Landmarks 5 puntos | ✅ | MediaPipe / face_recognition |
-| 📐 Landmarks 68 puntos | ✅ | dlib / face_recognition |
-| 📐 Landmarks 468 puntos (Face Mesh) | ✅ | MediaPipe |
-| 🆔 Embeddings 128-D | ✅ | face_recognition (dlib) |
-| 🆔 Embeddings 512-D (ArcFace) | ✅ | insightface |
-| 🆔 Embeddings VGG-Face | ✅ | DeepFace |
-| ✅ Verificación 1:1 (umbral) | ✅ | todos |
-| 🆔 Identificación 1:N | ✅ | todos |
-| 😊 Edad / Género / Emoción | ✅ | DeepFace |
-| 🎬 Tracking en video | ✅ | SORT + centroides |
-| 📦 Persistencia embeddings (pickle / HDF5) | ✅ | propio |
-| 🌐 API REST (FastAPI) | 🚧 | propio |
-| 🐳 Docker image | 🚧 | - |
-| ⚡ Aceleración GPU (CUDA) | 📋 | opcional |
-| 🛡 Liveness detection (anti-spoofing) | 📋 | MediaPipe |
-
-✅ Implementado · 🚧 En desarrollo · 📋 Planeado
-
-## Stack
-
-- **Python 3.11+**
-- **OpenCV** (`opencv-python`) — captura de video, DNN, image I/O.
-- **face_recognition** (basado en dlib) — embeddings 128-D, landmarks 68-pt.
-- **dlib** — modelos de detección y shape predictor.
-- **DeepFace** — verificación multi-backend, análisis de atributos.
-- **MediaPipe** — landmarks rápidos, Face Mesh.
-- **insightface** *(opcional)* — embeddings ArcFace estado del arte.
-- **NumPy + Pillow** — manipulación de imagen.
-- **FastAPI + Uvicorn** *(opcional)* — servir como API REST.
-- **pytest** — tests.
-
-## Instalación
-
-### 1. Requisitos del sistema
+### Con `pip` (modo desarrollo)
 
 ```bash
-# Ubuntu / Debian — dependencias nativas de dlib y OpenCV
-sudo apt-get update
-sudo apt-get install -y \
-    python3.11 python3.11-venv python3-pip \
-    build-essential cmake \
-    libopenblas-dev liblapack-dev \
-    libboost-all-dev \
-    libgl1 libglib2.0-0
-```
-
-> **Windows / macOS**: dlib pre-compilado se instala con `pip install dlib`
-> directo. Para compilar desde fuente en Windows necesitas Visual Studio
-> Build Tools 2019+.
-
-### 2. Entorno virtual (recomendado)
-
-```bash
-git clone https://github.com/aguitech/reconocimiento-facial-python.git
+git clone git@github.com:aguitech/reconocimiento-facial-python.git
 cd reconocimiento-facial-python
 python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-
-# Core
-pip install -e .
-
-# Backend dlib + face_recognition (incluye CMake + build dlib)
-pip install dlib face_recognition
-
-# Backend DeepFace (atributos)
-pip install deepface
-
-# Backend MediaPipe (face mesh, liveness)
-pip install mediapipe
-
-# Backend insightface (opcional, ArcFace)
-pip install insightface onnxruntime
+source .venv/bin/activate
+pip install -e ".[dev]"
 ```
 
-### 3. Verificar instalación
-
-```python
-import face_recognition
-import cv2
-import mediapipe as mp
-
-print("face_recognition:", face_recognition.__version__)
-print("OpenCV:", cv2.__version__)
-print("MediaPipe:", mp.__version__)
-```
-
-## Uso
-
-### API unificada (recomendado)
-
-```python
-from facekit import FaceEngine
-
-# Carga el backend que quieras (face_recognition por default)
-engine = FaceEngine(backend="face_recognition")
-
-# Detección + landmarks
-result = engine.detect("foto.jpg")
-for face in result.faces:
-    print(face.bbox)            # (x1, y1, x2, y2)
-    print(face.landmarks)       # dict con eyes, nose, mouth, ...
-    print(face.embedding)       # np.ndarray de 128 floats
-
-# Verificación 1:1 (¿es la misma persona?)
-match = engine.verify("persona_a.jpg", "persona_b.jpg")
-print(match.distance, match.match)  # distancia < umbral → True
-
-# Identificación 1:N
-ids = engine.identify("desconocido.jpg", database=["ana.jpg", "luis.jpg", "maria.jpg"])
-print(ids)  # [("ana.jpg", 0.42), ("luis.jpg", 0.55), ...]
-```
-
-### Scripts rápidos
+### Con Docker
 
 ```bash
-# Detectar todas las caras en una imagen y dibujar bboxes
-python3 scripts/detect_image.py --rect 0.55 foto.jpg -o salida.jpg
-
-# Identificar a la persona frente a la webcam
-python3 scripts/webcam_identify.py --db ./known_faces/
-
-# Comparar 2 imágenes
-python3 scripts/compare.py foto_a.jpg foto_b.jpg
-
-# Análisis de atributos (edad / género / emoción)
-python3 scripts/analyze_attributes.py foto.jpg
+docker-compose up --build
+# API disponible en http://localhost:8000/docs
 ```
 
-## Ejemplos
+## 🎯 Uso
 
-### 1. Detector con webcam (10 líneas)
+### CLI — registrar rostros
+
+```bash
+# Registrar a "Ana" con varias imágenes
+rf-detect register person --name "Ana" \
+    --image fotos/ana_1.jpg \
+    --image fotos/ana_2.jpg \
+    --image fotos/ana_3.jpg \
+    --notes "Compañera de trabajo" \
+    --jitters 10
+```
+
+### CLI — reconocer en una imagen
+
+```bash
+rf-detect recognize image fotos/grupo.jpg --output resultado.png --show
+```
+
+### CLI — webcam en vivo
+
+```bash
+rf-detect recognize webcam --camera 0 --skip 2
+```
+
+### CLI — listar y eliminar
+
+```bash
+rf-detect list
+rf-detect delete <id-parcial>
+rf-detect stats
+rf-detect serve --host 0.0.0.0 --port 8000
+```
+
+### API con `curl`
+
+```bash
+# Crear persona
+curl -X POST http://localhost:8000/persons \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Ana","notes":"CEO"}'
+
+# Registrar con imágenes base64
+curl -X POST http://localhost:8000/persons/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Beto","images":["<BASE64>", ...]}'
+
+# Reconocer
+curl -X POST http://localhost:8000/recognize/file \
+    -F "file=@t Foto.jpg"
+
+# Eliminar
+curl -X DELETE http://localhost:8000/persons/<id>
+```
+
+### Python — uso programático
 
 ```python
-import cv2
-from facekit import FaceEngine
+from reconocimiento_facial import FacePipeline
 
-engine = FaceEngine(backend="opencv")
-cap = cv2.VideoCapture(0)
+with FacePipeline() as pipeline:
+    # Registrar
+    pipeline.register_person(
+        name="Ana",
+        image_paths=["fotos/ana_1.jpg", "fotos/ana_2.jpg"],
+    )
 
-while True:
-    ok, frame = cap.read()
-    if not ok:
-        break
-    for face in engine.detect(frame).faces:
-        x1, y1, x2, y2 = face.bbox
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-    cv2.imshow("Faces", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+    # Reconocer
+    result = pipeline.recognize_image("fotos/grupo.jpg")
+    for match in result.faces:
+        name = match.person.name if match.matched else "Desconocido"
+        print(f"{name}: distancia={match.distance:.3f}, confianza={match.confidence:.0%}")
 
-cap.release()
-cv2.destroyAllWindows()
+    # Webcam
+    for frame_result in pipeline.iter_webcam(camera_index=0):
+        print(f"Rostros: {len(frame_result.faces)}")
 ```
 
-### 2. Indexar una base de datos
+## ⚙️ Configuración
 
-```python
-from pathlib import Path
-from facekit import FaceEngine
-from facekit.storage import EmbeddingDB
+Variables de entorno (todas con prefijo `RF_`):
 
-engine = FaceEngine(backend="face_recognition")
-db = EmbeddingDB("./embeddings.h5")
+| Variable | Default | Descripción |
+|---|---|---|
+| `RF_DATA_DIR` | `./data` | Carpeta de datos persistentes |
+| `RF_DB_PATH` | `reconocimiento.db` | Archivo de base de datos (relativo a `DATA_DIR`) |
+| `RF_TOLERANCE` | `0.6` | Umbral de coincidencia (0.0–1.0, menor = más estricto) |
+| `RF_DETECTOR_BACKEND` | `face_recognition` | `face_recognition` u `opencv_haar` |
+| `RF_DISTANCE_METRIC` | `euclidean_l2` | `euclidean` o `euclidean_l2` |
+| `RF_MAX_IMAGE_SIZE` | `800` | Redimensionar imágenes (None desactiva) |
+| `RF_LOG_LEVEL` | `default` | Nivel de loguru (TRACE, DEBUG, INFO, WARNING, ERROR) |
 
-for img_path in Path("./people").glob("*.jpg"):
-    name = img_path.stem
-    result = engine.detect(img_path)
-    for face in result.faces:
-        db.add(name=name, embedding=face.embedding, source=str(img_path))
+Ejemplo `.env`:
 
-db.save()
-print(f"Indexed {len(db)} faces")
+```ini
+RF_TOLERANCE=0.5
+RF_DETECTOR_BACKEND=face_recognition
+RF_LOG_LEVEL=INFO
 ```
 
-### 3. Análisis de atributos
+## 🧪 Tests
 
-```python
-from deepface import DeepFace
-
-objs = DeepFace.analyze(
-    img_path="foto.jpg",
-    actions=["age", "gender", "emotion", "race"],
-    enforce_detection=True,
-)
-
-for face in objs:
-    print({
-        "age":     face["age"],
-        "gender":  face["dominant_gender"],
-        "emotion": face["dominant_emotion"],
-        "race":    face["dominant_race"],
-    })
+```bash
+pytest                       # corre todo
+pytest -m "not integration"  # sin integración (sin servidor)
+pytest --cov=reconocimiento_facial
 ```
 
-## API
-
-### `FaceEngine`
-
-| Método | Descripción |
-|--------|-------------|
-| `detect(image, **kwargs)` | Detecta caras, devuelve `DetectionResult` con lista de `Face` |
-| `verify(img1, img2, threshold=0.5)` | Verificación 1:1 — devuelve `VerifyResult` |
-| `identify(unknown, database, top_k=3)` | Identificación 1:N — devuelve lista ordenada por similitud |
-| `embed(image)` | Devuelve solo embeddings sin dibujar / reportar |
-
-### `Face`
-
-```python
-@dataclass
-class Face:
-    bbox:      tuple[int, int, int, int]   # (x1, y1, x2, y2)
-    confidence: float
-    landmarks: dict[str, np.ndarray]
-    embedding: np.ndarray | None           # 128-D / 512-D según backend
-    age:       int | None
-    gender:    str | None
-    emotion:   str | None
-```
-
-### `EmbeddingDB`
-
-```python
-db = EmbeddingDB(path)
-db.add(name, embedding, source=None)
-db.search(embedding, top_k=5)
-db.save()
-db.load()
-```
-
-## Estructura
+## 🏗️ Arquitectura
 
 ```
-reconocimiento-facial-python/
-├── facekit/
-│   ├── __init__.py
-│   ├── engine.py             # FaceEngine unificado
-│   ├── backends/
-│   │   ├── opencv.py
-│   │   ├── face_recognition.py
-│   │   ├── mediapipe.py
-│   │   ├── deepface.py
-│   │   └── insightface.py
-│   ├── storage.py            # EmbeddingDB
-│   ├── utils.py              # I/O, resize, draw
-│   └── types.py              # dataclasses: Face, DetectionResult, ...
-├── scripts/
-│   ├── detect_image.py
-│   ├── webcam_identify.py
-│   ├── compare.py
-│   └── analyze_attributes.py
-├── tests/
-│   ├── test_engine.py
-│   └── fixtures/
-├── examples/
-│   └── notebook.ipynb
-├── pyproject.toml
-├── README.md
-└── LICENSE
+src/reconocimiento_facial/
+├── __init__.py
+├── config.py          # Settings (env + .env)
+├── utils.py           # logging, load/encode/decode de imágenes
+├── detector.py        # FaceLocation + FaceRecognitionDetector + OpenCVHaarDetector
+├── encoder.py         # FaceEncoding + FaceEncoder (128-d embeddings)
+├── database.py        # FaceDatabase (SQLite) + Person
+├── recognizer.py      # FaceRecognizer + Match
+├── pipeline.py        # FacePipeline (alto nivel)
+├── schemas.py         # Modelos Pydantic para la API
+├── api.py             # FastAPI (crear/listar/eliminar/reconocer)
+└── cli.py              # Typer (rf-detect CLI)
 ```
 
-## Performance
+### Flujo de reconocimiento
 
-| Backend | Detección (FPS @ 1080p) | Embedding (ms) | Tamaño modelo |
-|---------|--------------------------|----------------|---------------|
-| OpenCV Haar | 60+ | — | 1 MB |
-| OpenCV DNN YuNet | 50+ | — | 5 MB |
-| MediaPipe | 80+ | — | 4 MB |
-| face_recognition (HOG) | 12 | 200 | — |
-| face_recognition (CNN) | 8 | 280 | 230 MB |
-| DeepFace (Facenet) | 6 | 320 | 95 MB |
-| insightface (ArcFace) | 25 | 35 (GPU) | 250 MB |
+```
+imagen (RGB, uint8)
+    │
+    ▼
+[Detector]      → list[FaceLocation]      (bounding boxes)
+    │
+    ▼
+[Encoder]       → list[FaceEncoding]     (vectores 128-d)
+    │
+    ▼
+[Recognizer]    → list[Match]            (persona + distancia + confianza)
+    │
+    ▼
+Reconocimiento ✓
+```
 
-Mediciones en CPU Intel i7-1165G7 / GPU RTX 3060.
+## 📊 Benchmarks (referencia, MacBook Pro M2)
 
-## Consideraciones éticas
+| Operación | Tiempo medio |
+|---|---|
+| Detección HOG (1280×720) | ~85 ms |
+| Encoding 1 rostro | ~25 ms |
+| Encoding 1 rostro (jitters=10) | ~220 ms |
+| Comparación contra 100 muestras | <1 ms |
+| Reconocimiento completo (1 rostro, 10 muestras) | ~115 ms |
 
-- 🔒 **Consentimiento**: este software identifica personas. Úsalo solo con consentimiento explícito.
-- ⚖️ **Privacidad**: el GDPR y otras leyes regulan el procesamiento biométrico. Asegúrate de cumplir.
-- 🚫 **Anti-spoofing**: este repo NO hace liveness detection por default — una foto impresa pasa la verificación. Para producción real usa liveness (MediaPipe + depth / IR).
-- 📊 **Sesgo**: los modelos tienen sesgos por edad / etnia / género. Mide tu caso de uso real antes de desplegar.
+## 🗺️ Roadmap
 
-## License
+- [x] Detector dual (dlib + Haar)
+- [x] Pipeline de alto nivel
+- [x] Persistencia SQLite
+- [x] API REST
+- [x] CLI
+- [x] Docker
+- [ ] Aceleración con GPU (CUDA / CoreML)
+- [ ] Reconocimiento con anti-spoofing (liveness detection)
+- [ ] Cluster de embeddings (DBSCAN) para entrenar a partir de muchos rostros
+- [ ] UI web (Streamlit)
+- [ ] Integración con Kafka / RabbitMQ para eventos
 
-MIT — úsalo, modifícalo, repártelo. Si te late, menciónanos.
+## 🤝 Contribuciones
 
----
+¡PRs bienvenidos! Antes de abrir uno:
 
-<p align="center">
-  Hecho con 🇨 por <a href="https://aguitech.com"><strong>AGUITECH</strong></a> ·
-  Ingeniería + Diseño + Sistemas
-</p>
+```bash
+ruff check src tests
+black src tests
+mypy src
+pytest
+```
+
+## 📝 Licencia
+
+MIT — ver [LICENSE](LICENSE).
+
+## ✍️ Autor
+
+**Héctor Aguilar** — [aguitech](https://github.com/aguitech) — hector@aguitech.com

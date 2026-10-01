@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: "3.11"
+    image: aguitech/reconocimiento-facial:latest
+    container_name: rf-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      RF_DATA_DIR: /app/data
+      RF_DB_PATH: reconocimiento.db
+      RF_TOLERANCE: "0.6"
+      RF_DETECTOR_BACKEND: face_recognition
+      RF_LOG_LEVEL: default
+    volumes:
+      - rf_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  rf_data:
+    driver: local
